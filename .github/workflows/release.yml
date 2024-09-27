@@ -23,5 +23,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build App
+      - name: Build Nest.js App
         run: npm run build
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Package for release
+        run: |
+          mkdir -p dist/release
+          cp -r dist/* dist/release
