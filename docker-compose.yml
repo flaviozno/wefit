@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak_container
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: start-dev
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  mysql:
+    platform: linux/x86_64
+    image: mysql:5.6
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MYSQL_DATABASE=$DB_DATABASE
+      - MYSQL_ROOT_PASSWORD=$DB_PASS
+    ports:
+      - $DB_PORT:3306
+    volumes:
+      - ./data/:/var/lib/mysql
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
+    driver: bridge
