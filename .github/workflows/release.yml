@@ -20,16 +20,23 @@ jobs:
         with:
           node-version: "16.x"
 
-      - name: Install dependencies
-        run: npm install
+      - name: Navigate to backend directory and install dependencies
+        run: |
+          cd backend
+          npm install
 
       - name: Build Nest.js App
-        run: npm run build
+        run: |
+          cd backend
+          npm run build
 
       - name: Run Tests
-        run: npm run test
+        run: |
+          cd backend
+          npm run test
 
       - name: Package for release
         run: |
+          cd backend
           mkdir -p dist/release
           cp -r dist/* dist/release
