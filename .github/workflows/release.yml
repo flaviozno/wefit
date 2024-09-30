@@ -34,9 +34,3 @@ jobs:
         run: |
           cd backend
           npm run test
-
-      - name: Package for release
-        run: |
-          cd backend
-          mkdir -p dist/release
-          cp -r dist/* dist/release
