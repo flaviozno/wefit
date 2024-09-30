@@ -5,8 +5,13 @@ import { User } from "../../entity/user.entity";
 import { Address } from "../../entity/address.entity";
 import { CreateFormDto } from "./dto/create-form.dto";
 import { CreateAddressDto } from "./dto/create-address.dto";
-import { UpdateFormDto } from "./dto/update-form.dto";
-import { validateEmail, validateCPF, normalizePhone } from "../../utils";
+import {
+  validateEmail,
+  validateCPF,
+  normalizePhone,
+  encrypt,
+  decrypt,
+} from "../../utils";
 
 @Injectable()
 export class FormService {
@@ -52,14 +57,16 @@ export class FormService {
           success: false,
         });
       }
-
+      const encryptedCpf = encrypt(cpf);
       const normalizedPhone = normalizePhone(phone);
       const normalizedMobile = normalizePhone(mobile);
+
+      console.log(encryptedCpf);
 
       const user = this.userRepository.create({
         ...userData,
         email,
-        cpf,
+        cpf: encryptedCpf,
         emailConfirmation: email,
         mobile: normalizedMobile,
         phone: normalizedPhone,
@@ -90,10 +97,17 @@ export class FormService {
     try {
       const skip = (page - 1) * limit;
 
-      const [users, total] = await this.userRepository.findAndCount({
+      let [users, total] = await this.userRepository.findAndCount({
         skip,
         take: limit,
         relations: ["addresses"],
+      });
+
+      users = users.map((user) => {
+        return {
+          ...user,
+          cpf: decrypt(user.cpf),
+        };
       });
 
       return {
@@ -112,8 +126,9 @@ export class FormService {
 
   async getFormByCpf(cpf: string) {
     try {
+      const encryptedCpf = encrypt(cpf);
       const form = await this.userRepository.findOne({
-        where: { cpf },
+        where: { cpf: encryptedCpf },
         relations: ["addresses"],
       });
       if (!form) {
@@ -122,6 +137,7 @@ export class FormService {
           success: false,
         });
       }
+      form.cpf = decrypt(form.cpf);
       return form;
     } catch (error) {
       throw new BadRequestException({
@@ -131,26 +147,29 @@ export class FormService {
     }
   }
 
-  async updateFormByCpf(cpf: string, updateFormDto: UpdateFormDto) {
-    const result = await this.userRepository.update({ cpf }, updateFormDto);
-
+  async deleteFormByCpf(cpf: string): Promise<{ message: string }> {
     try {
-      if (result.affected === 0) {
+      const encryptedCpf = encrypt(cpf);
+      const form = await this.userRepository.findOne({
+        where: { cpf: encryptedCpf },
+        relations: ["addresses"],
+      });
+
+      if (!form) {
         throw new BadRequestException({
-          message: "Error for update this form",
+          message: "Form not found with this CPF",
           success: false,
         });
       }
 
-      const updatedUser = await this.userRepository.findOne({
-        where: { cpf },
-        relations: ["addresses"],
-      });
+      await this.addressRepository.delete({ user: form });
 
-      return { message: "Form updated successfully", form: updatedUser };
+      await this.userRepository.delete({ cpf: encryptedCpf });
+
+      return { message: "Form successfully deleted" };
     } catch (error) {
       throw new BadRequestException({
-        message: "Error for update this form",
+        message: `Error deleting form: ${error.message || error}`,
         success: false,
       });
     }

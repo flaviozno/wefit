@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { FormController } from "./form.controller";
 import { FormService } from "./form.service";
 import { CreateFormDto } from "./dto/create-form.dto";
-import { UpdateFormDto } from "./dto/update-form.dto";
 
 describe("FormController", () => {
   let controller: FormController;
@@ -18,7 +17,7 @@ describe("FormController", () => {
             createForm: jest.fn(),
             getAllForms: jest.fn(),
             getFormByCpf: jest.fn(),
-            updateFormByCpf: jest.fn(),
+            deleteFormByCpf: jest.fn(),
           },
         },
       ],
@@ -68,6 +67,11 @@ describe("FormController", () => {
       await controller.getAllForms(page, limit);
       expect(formService.getAllForms).toHaveBeenCalledWith(page, limit);
     });
+
+    it("should call formService.getAllForms with default parameters when not provided", async () => {
+      await controller.getAllForms();
+      expect(formService.getAllForms).toHaveBeenCalledWith(1, 10);
+    });
   });
 
   describe("getFormByCpf", () => {
@@ -78,15 +82,11 @@ describe("FormController", () => {
     });
   });
 
-  describe("updateFormByCpf", () => {
-    it("should call formService.updateFormByCpf with correct CPF and update data", async () => {
+  describe("deleteFormByCpf", () => {
+    it("should call formService.deleteFormByCpf with correct CPF", async () => {
       const cpf = "12345678900";
-      const updateFormDto: UpdateFormDto = { name: "Updated Name" };
-      await controller.updateFormByCpf(cpf, updateFormDto);
-      expect(formService.updateFormByCpf).toHaveBeenCalledWith(
-        cpf,
-        updateFormDto
-      );
+      await controller.deleteFormByCpf(cpf);
+      expect(formService.deleteFormByCpf).toHaveBeenCalledWith(cpf);
     });
   });
 });

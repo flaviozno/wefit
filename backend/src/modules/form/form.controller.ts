@@ -2,14 +2,13 @@ import {
   Controller,
   Get,
   Param,
-  Patch,
   Body,
   Post,
   Query,
+  Delete,
 } from "@nestjs/common";
 import { FormService } from "./form.service";
 import { CreateFormDto } from "./dto/create-form.dto";
-import { UpdateFormDto } from "./dto/update-form.dto";
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -36,14 +35,16 @@ export class FormController {
 
   @Get("all")
   @ApiOperation({ summary: "Get all forms with pagination" })
-  @ApiQuery({ name: "page", required: true, type: Number })
-  @ApiQuery({ name: "limit", required: true, type: Number })
+  @ApiQuery({ name: "page", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
   @ApiResponse({ status: 200, description: "List of all forms" })
   async getAllForms(
-    @Query("page") page: number = 1,
-    @Query("limit") limit: number = 10
+    @Query("page") page?: number,
+    @Query("limit") limit?: number
   ) {
-    return await this.formService.getAllForms(page, limit);
+    const validPage = page ? page : 1;
+    const validLimit = limit ? limit : 10;
+    return await this.formService.getAllForms(validPage, validLimit);
   }
 
   @Get(":cpf")
@@ -54,16 +55,11 @@ export class FormController {
     return await this.formService.getFormByCpf(cpf);
   }
 
-  @Patch(":cpf")
-  @ApiOperation({ summary: "Update form by CPF" })
-  @ApiBody({ type: UpdateFormDto, description: "Updated form data" })
-  @ApiResponse({ status: 200, description: "Form updated successfully" })
+  @Delete(":cpf")
+  @ApiOperation({ summary: "Delete form by CPF" })
+  @ApiResponse({ status: 200, description: "Form successfully deleted" })
   @ApiResponse({ status: 404, description: "Form not found" })
-  @ApiResponse({ status: 400, description: "Invalid form data" })
-  async updateFormByCpf(
-    @Param("cpf") cpf: string,
-    @Body() updateFormDto: UpdateFormDto
-  ) {
-    return await this.formService.updateFormByCpf(cpf, updateFormDto);
+  async deleteFormByCpf(@Param("cpf") cpf: string) {
+    return await this.formService.deleteFormByCpf(cpf);
   }
 }

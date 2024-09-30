@@ -22,19 +22,12 @@ services:
     restart: unless-stopped
     env_file: ./.env
     environment:
-      - MYSQL_DATABASE=$DB_DATABASE
       - MYSQL_ROOT_PASSWORD=$DB_PASS
+      - MYSQL_DATABASE=$DB_DATABASE
     ports:
       - $DB_PORT:3306
     volumes:
       - ./data/:/var/lib/mysql
-    networks:
-      - app_network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
 volumes:
   mysql_data:
