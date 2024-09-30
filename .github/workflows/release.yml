@@ -33,8 +33,7 @@ jobs:
       - name: Package for Lambda
         run: |
           cd backend
-          npm run build
-          zip -r nestjs-app.zip .
+          powershell Compress-Archive -Path * -DestinationPath nestjs-app.zip
 
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v2
