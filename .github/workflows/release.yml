@@ -25,6 +25,11 @@ jobs:
           cd backend
           npm install
 
+      - name: Test App
+        run: |
+          cd backend
+          npm run test
+
       - name: Build Nest.js App
         run: |
           cd backend
